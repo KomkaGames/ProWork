@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProWork | Multi-Functional Platform</title>
+    
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #10b981;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #1f2937;
+            --gray: #6b7280;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Темна тема */
+        body.dark-mode {
+            --bg: #111827;
+            --card: #1f2937;
+            --text: #f9fafb;
+            --gray: #9ca3af;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            transition: all 0.3s ease;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* Навігація */
+        header {
+            background: var(--card);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        nav { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); cursor: pointer; }
+        
+        .nav-controls { display: flex; gap: 15px; align-items: center; }
+
+        /* Кнопки */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        .btn-theme { background: none; font-size: 1.2rem; }
+
+        /* Панель керування ролями */
+        .role-switcher {
+            background: var(--card);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 12px;
+            display: flex;
+            gap: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        /* Секція створення контенту (для замовників) */
+        #postProjectSection {
+            background: var(--card);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: none; /* Приховано за замовчуванням */
+            box-shadow: var(--shadow);
+        }
+
+        .form-group { margin-bottom: 15px; }
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--gray);
+            border-radius: 8px;
+            background: var(--card);
+            color: var(--text);
+            box-sizing: border-box;
+        }
+
+        /* Список проектів */
+        .main-grid { display: grid; grid-template-columns: 3fr 1fr; gap: 30px; }
+        .project-card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            background: #e0e7ff;
+            color: var(--primary);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } }
+
+        /* Модальне вікно */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+        .modal-content {
+            background: var(--card);
+            width: 90%;
+            max-width: 500px;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+        }
+
+        .stats-box {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            height: fit-content;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav class="container">
+        <div class="logo">Pro<span>Work</span></div>
+        <div class="nav-controls">
+            <button class="btn-theme" onclick="toggleTheme()">🌓</button>
+            <button class="btn btn-outline" onclick="showDashboard()">Кабінет</button>
+            <button class="btn btn-primary">Вийти</button>
+        </div>
+    </nav>
+</header>
+
+<main class="container">
+    <div class="role-switcher">
+        <span>Ви зайти як:</span>
+        <button class="btn btn-primary" id="btnFreelancer" onclick="setRole('freelancer')">Фрілансер</button>
+        <button class="btn btn-outline" id="btnClient" onclick="setRole('client')">Замовник</button>
+    </div>
+
+    <section id="postProjectSection">
+        <h3>Опублікувати нове завдання</h3>
+        <div class="form-group">
+            <input type="text" id="projTitle" placeholder="Назва проекту (напр. Створити логотип)">
+        </div>
+        <div class="form-group">
+            <select id="projCategory">
+                <option value="Веб-розробка">Веб-розробка</option>
+                <option value="Дизайн">Дизайн</option>
+                <option value="Маркетинг">Маркетинг</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <input type="number" id="projBudget" placeholder="Бюджет (грн)">
+        </div>
+        <button class="btn btn-primary" onclick="addProject()">Опублікувати</button>
+    </section>
+
+    <div class="main-grid">
+        <section>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Активні замовлення</h2>
+                <input type="text" id="search" placeholder="Пошук..." style="width: 200px;" onkeyup="searchProjects()">
+            </div>
+            <div id="projectFeed">
+                </div>
+        </section>
+
+        <aside>
+            <div class="stats-box">
+                <h3>Ваша активність</h3>
+                <p>Зароблено: <b>12 400 грн</b></p>
+                <p>Проектів у роботі: <b>3</b></p>
+                <hr>
+                <p>Рейтинг: ⭐ 4.9</p>
+            </div>
+        </aside>
+    </div>
+</main>
+
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <h2 id="modalTitle">Відгук на проект</h2>
+        <textarea id="bidText" placeholder="Напишіть ваші переваги..." rows="5"></textarea>
+        <div style="margin-top: 15px; display: flex; gap: 10px;">
+            <button class="btn btn-primary" onclick="submitBid()">Відправити</button>
+            <button class="btn btn-outline" onclick="closeModal()">Закрити</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Початкові дані
+    let projects = [
+        { id: 1, title: "Landing Page для стоматології", cat: "Веб-розробка", budget: 4000, desc: "Потрібно зробити сучасний лендинг на React або HTML/CSS." },
+        { id: 2, title: "Логотип для бренду одягу", cat: "Дизайн", budget: 1500, desc: "Мінімалізм, вектори, термін 3 дні." }
+    ];
+
+    let currentRole = 'freelancer';
+
+    // Рендер проектів
+    function renderProjects(data = projects) {
+        const feed = document.getElementById('projectFeed');
+        feed.innerHTML = '';
+        
+        data.forEach(p => {
+            feed.innerHTML += `
+                <div class="project-card">
+                    <span class="badge">${p.cat}</span>
+                    <h3>${p.title}</h3>
+                    <p>${p.desc}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: bold; color: var(--secondary);">${p.budget} грн</span>
+                        <button class="btn btn-primary" onclick="openModal('${p.title}')">Відгукнутись</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // Зміна ролі
+    function setRole(role) {
+        currentRole = role;
+        const postSection = document.getElementById('postProjectSection');
+        const btnF = document.getElementById('btnFreelancer');
+        const btnC = document.getElementById('btnClient');
+
+        if (role === 'client') {
+            postSection.style.display = 'block';
+            btnC.className = 'btn btn-primary';
+            btnF.className = 'btn btn-outline';
+        } else {
+            postSection.style.display = 'none';
+            btnF.className = 'btn btn-primary';
+            btnC.className = 'btn btn-outline';
+        }
+    }
+
+    // Додавання нового проекту
+    function addProject() {
+        const title = document.getElementById('projTitle').value;
+        const cat = document.getElementById('projCategory').value;
+        const budget = document.getElementById('projBudget').value;
+
+        if(!title || !budget) return alert("Заповніть всі поля!");
+
+        const newProj = {
+            id: Date.now(),
+            title: title,
+            cat: cat,
+            budget: budget,
+            desc: "Опис доданий замовником через форму..."
+        };
+
+        projects.unshift(newProj);
+        renderProjects();
+        
+        // Очищення полів
+        document.getElementById('projTitle').value = '';
+        document.getElementById('projBudget').value = '';
+        alert("Проект опубліковано!");
+    }
+
+    // Пошук
+    function searchProjects() {
+        const query = document.getElementById('search').value.toLowerCase();
+        const filtered = projects.filter(p => p.title.toLowerCase().includes(query));
+        renderProjects(filtered);
+    }
+
+    // Темна тема
+    function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    }
+
+    // Модалка
+    function openModal(title) {
+        if(currentRole === 'client') return alert("Ви замовник! Перемкніться на роль фрілансера, щоб подавати заявки.");
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modal').style.display = 'block';
+    }
+
+    function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+    function submitBid() {
+        alert("Заявка надіслана!");
+        closeModal();
+    }
+
+    // Ініціалізація
+    window.onload = () => {
+        renderProjects();
+        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+    };
+</script>
+
+</body>
+</html>
